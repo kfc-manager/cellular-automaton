@@ -1,0 +1,5 @@
+./*.out
+./*.o
+./solution
+./caseq
+**/.DS_Store
