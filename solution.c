@@ -71,7 +71,7 @@ static void initConfig(Line *buf, int start, int end, int lines) {
 }
 
 static void simulate(Line *buf, Line *next, int lines, int rank, int size) {
-    
+
     for (int y = 0; y <= lines+1; y++) {
         buf[y][0] = buf[y][XSIZE];
         buf[y][XSIZE+1] = buf[y][1];
@@ -80,35 +80,47 @@ static void simulate(Line *buf, Line *next, int lines, int rank, int size) {
     int src, dest;
     MPI_Status status;
 
-    if (size - 1 == rank) {
-        dest = 0;
-    } else {
-        dest = rank + 1;
-    }
-    MPI_Send(buf[1], (XSIZE + 2), MPI_CHAR, dest, 1, MPI_COMM_WORLD);
     if (rank == 0) {
         dest = size - 1;
     } else {
         dest = rank - 1;
     }
-    MPI_Send(buf[lines], (XSIZE + 2), MPI_CHAR, dest, 1, MPI_COMM_WORLD);
+    MPI_Send(buf[1], (XSIZE + 2), MPI_CHAR, dest, 1, MPI_COMM_WORLD);
+    if (size - 1 == rank) {
+        dest = 0;
+    } else {
+        dest = rank + 1;
+    }
+    MPI_Send(buf[lines - 2], (XSIZE + 2), MPI_CHAR, dest, 1, MPI_COMM_WORLD);
     if (size - 1 == rank) {
         src = 0;
     } else {
         src = rank + 1;
     }
-    MPI_Recv(buf[lines + 1], (XSIZE + 2), MPI_CHAR, src, 1, MPI_COMM_WORLD, &status);
+    MPI_Recv(buf[lines - 1], (XSIZE + 2), MPI_CHAR, src, 1, MPI_COMM_WORLD, &status);
     if (rank == 0) {
         src = size - 1;
     } else {
         src = rank - 1;
     }
     MPI_Recv(buf[0], (XSIZE + 2), MPI_CHAR, src, 1, MPI_COMM_WORLD, &status);
+
+    for (int y = 1; y < lines - 1; y++) {
+        for (int x = 1; x <= XSIZE; x++) {
+            next[y][x] = transition(buf, x, y);
+        }
+    }
+
+    for (int y = 0; y < lines; y++) {
+        for (int x = 0; x < (XSIZE+2); x++) {
+            buf[y][x] = next[y][x];
+        }
+    }
 }
 
 int main(int argc, char** argv) {
     if (argc != 3) {
-        perror("two arguments\
+        perror("only two arguments\
          (number of lines and number of itertions) required and allowed");
         return -1;
     }
@@ -130,7 +142,9 @@ int main(int argc, char** argv) {
     Line *next = malloc((workload[rank] + 2) * sizeof(Line));
     initConfig(buf, start[rank], end[rank], lines);
 
-    //simulate(buf, next, workload[rank], rank, size);
+    for (int i = 0; i < its; i++) {
+        simulate(buf, next, (workload[rank] + 2), rank, size);
+    }
 
     if (rank < 1) {
         // MASTER

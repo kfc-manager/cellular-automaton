@@ -8,7 +8,8 @@
 #SBATCH --time=00:20:00
 #SBATCH --reservation=pr
 
+module load openmpi
 set -e
 
-# srun ./caseq 1024 0
-mpirun ./solution 1024 0
+srun ./caseq 1024 1
+mpirun -np $SLURM_NTASKS ./solution 1024 1
