@@ -2,3 +2,6 @@
 ./*.o
 ./solution
 ./caseq
+**/.DS_Store
+**/.vscode/
+**/!.vscode/extensions.json

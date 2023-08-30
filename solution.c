@@ -110,12 +110,6 @@ static void simulate(Line *buf, Line *next, int lines, int rank, int size) {
             next[y][x] = transition(buf, x, y);
         }
     }
-
-    for (int y = 0; y < lines; y++) {
-        for (int x = 0; x < (XSIZE+2); x++) {
-            buf[y][x] = next[y][x];
-        }
-    }
 }
 
 int main(int argc, char** argv) {
@@ -140,10 +134,14 @@ int main(int argc, char** argv) {
 
     Line *buf = malloc((workload[rank] + 2) * sizeof(Line));
     Line *next = malloc((workload[rank] + 2) * sizeof(Line));
+    Line *tmp;
     initConfig(buf, start[rank], end[rank], lines);
 
     for (int i = 0; i < its; i++) {
         simulate(buf, next, (workload[rank] + 2), rank, size);
+        tmp = buf;  
+	    buf = next;  
+	    next = tmp;
     }
 
     if (rank < 1) {
@@ -151,7 +149,7 @@ int main(int argc, char** argv) {
         Line *ca = malloc((lines + 2) * sizeof(Line));
         for (int i = 0; i < size; i++) {
             for (int y = 0; y < workload[i]; y++) {
-                for (int x = 1; x < (XSIZE + 1); x++) {
+                for (int x = 0; x <= (XSIZE + 1); x++) {
                     ca[y + start[i]][x] = buf[y + 1][x];
                 }
             }

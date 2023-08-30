@@ -11,5 +11,5 @@
 module load openmpi
 set -e
 
-srun ./caseq 1024 1
-mpirun -np $SLURM_NTASKS ./solution 1024 1
+srun ./caseq 1024 2
+mpirun -np $SLURM_NTASKS ./solution 1024 2
